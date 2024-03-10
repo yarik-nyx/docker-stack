@@ -1,0 +1,73 @@
+version: '3.9'
+
+services:
+  pg_db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 7777
+      POSTGRES_DB: schedule
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: always
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: qwe@mail.com
+      PGADMIN_DEFAULT_PASSWORD: 7777
+    ports:
+      - "5050:80"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: always
+  grafana:
+    image: grafana/grafana:8.5.3-ubuntu
+    ports:
+      - 3000:3000
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - grafana-configs:/etc/grafana
+    deploy:
+      placement:
+        constraints:
+          - node.role==manager
+      restart_policy:
+        condition: always
+  prometheus:
+    image: prom/prometheus:v2.36.0
+    ports:
+      - 9090:9090
+    volumes:
+      - prom-data:/prometheus
+      - prom-configs:/etc/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    deploy:
+      placement:
+        constraints:
+          - node.role==manager
+      restart_policy:
+        condition: always
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter
+    ports:
+      - 9187:9187
+    environment:
+      DATA_SOURCE_NAME: "postgresql://postgres:7777@pg_db:5432/schedule"
+    depends_on:
+      - pg_db
+      - prometheus
+    deploy:
+      mode: global
+volumes:
+  pg_data:
+  grafana-data:
+  grafana-configs:
+  prom-data:
+  prom-configs:
