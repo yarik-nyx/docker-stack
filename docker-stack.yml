@@ -44,10 +44,7 @@ services:
     ports:
       - 9090:9090
     volumes:
-      - prom-data:/prometheus
-      - prom-configs:/etc/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     deploy:
       placement:
         constraints:
