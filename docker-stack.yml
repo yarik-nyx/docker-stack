@@ -62,6 +62,11 @@ services:
       - prometheus
     deploy:
       mode: global
+    logging:
+      driver: json-file
+      options:
+        'max-size': '10m'
+        'max-file': '5'
 volumes:
   pg_data:
   grafana-data:
