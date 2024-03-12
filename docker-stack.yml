@@ -31,20 +31,23 @@ services:
       - 9090:9090
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-  postgres-exporter:
-    image: prometheuscommunity/postgres-exporter
+  node-exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command: 
+      - '--path.procfs=/host/proc' 
+      - '--path.sysfs=/host/sys'
+      - --collector.filesystem.ignored-mount-points
+      - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
     ports:
-      - 9187:9187
-    environment:
-      DATA_SOURCE_NAME: "postgresql://postgres:7777@pg_db:5432/schedule"
-    depends_on:
-      - pg_db
-      - prometheus
-    logging:
-      driver: json-file
-      options:
-        'max-size': '10m'
-        'max-file': '5'
+      - 9100:9100
+    deploy:
+      mode: global
+      restart_policy:
+          condition: on-failure
 volumes:
   pg_data:
   grafana-data:
